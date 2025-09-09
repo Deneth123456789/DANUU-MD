@@ -112,7 +112,7 @@ async function startBot() {
             // React to the status
             await sock.sendMessage(msg.key.remoteJid, {
                 react: {
-                    text: '👻', // You can change this emoji to anything you like
+                    text: '❤️', // You can change this emoji to anything you like
                     key: msg.key
                 }
             });
@@ -145,7 +145,7 @@ async function startBot() {
             if (!lowerCaseText.startsWith('.') && !msg.key.remoteJid.endsWith('status@broadcast')) {
                 await sock.sendMessage(remoteJid, {
                     react: {
-                        text: '🔥', // You can change this emoji
+                        text: '👍', // You can change this emoji
                         key: msg.key
                     }
                 });
@@ -181,18 +181,255 @@ async function startBot() {
                 });
             }
 
-            // Command: .help or .menu (updated with an image)
+            // Command: .help or .menu (updated to remove image)
             if (lowerCaseText === '.help' || lowerCaseText === '.menu') {
                 const helpMessage = `
 *DANUU-MD Bot Commands:*
 * .start: Bot එක පටන් ගන්න.
 * .ping: Bot එක online ද කියලා බලන්න.
-* .Alive: Bot එක online ද කියලා image එකක් එක්ක බලන්න.
+* .Alive: Bot එක online ද කියලා බලන්න.
 * .help: මේ commands ලැයිස්තුව බලන්න.
 * .Menu: මේ commands ලැයිස්තුව බලන්න.
 * .info: Bot එක ගැන විස්තර දැනගන්න.
 * .image: Image එකක් යවන්න.
 * .sticker: Image එකකට reply කරලා sticker එකක් හදන්න.
+* .quote: Random quote එකක් ගන්න.
+* .echo <text>: ඔයා කියන එක නැවත කියනවා.
+* .time: වර්තමාන වේලාව කියනවා.
+* .joke: විහිළුවක් කියනවා.
+* .song <song name>: සින්දුවක් download කරගන්න.
+* .getdp: DP එකක් ගන්න.
+* .statusview <on|off>: Statuses ස්වයංක්‍රීයව view කිරීම සක්‍රිය/අක්‍රිය කරන්න.
+* .antidelete <on|off>: Deleted messages නැවත යවන්න සක්‍රිය/අක්‍රිය කරන්න.
+* .viewonce: "View Once" photo/video එකක් නැවත බලන්න.
+                `;
+                await sock.sendMessage(remoteJid, {
+                    text: helpMessage
+                });
+            }
+
+            // Command: .info
+            if (lowerCaseText === '.info') {
+                const infoMessage = `Hello, I'm the DANUU-MD bot. I was created with the Baileys library to automate tasks on WhatsApp.`;
+                await sock.sendMessage(remoteJid, {
+                    text: infoMessage
+                });
+            }
+            
+            // Command: .Alive (updated to remove image)
+            if (lowerCaseText === '.alive') {
+                await sock.sendMessage(remoteJid, {
+                    text: 'මම දැන් Online ඉන්නවා.'
+                });
+            }
+            
+            // Command: .image
+            if (lowerCaseText === '.image') {
+                await sock.sendMessage(remoteJid, {
+                    image: {
+                        url: 'https://placehold.co/600x400?text=Hello+from+your+bot'
+                    },
+                    caption: 'හලෝ! මේ ඔයා ඉල්ලපු image එක.'
+                });
+            }
+
+            // Command: .song <song name>
+            if (lowerCaseText.startsWith('.song')) {
+                const songName = messageText.slice('.song'.length).trim();
+                if (!songName) {
+                    await sock.sendMessage(remoteJid, {
+                        text: 'කරුණාකර song එකේ නම .song command එකට පස්සේ දාන්න.'
+                    });
+                } else {
+                    await sock.sendMessage(remoteJid, {
+                        text: `කරුණාකර ටිකක් ඉවසන්න, මම "${songName}" සින්දුව හොයනවා.`
+                    });
+                    
+                    const audioUrl = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'; // Placeholder URL
+                    try {
+                        await sock.sendMessage(remoteJid, {
+                            audio: {
+                                url: audioUrl
+                            },
+                            mimetype: 'audio/mp4',
+                            ptt: false,
+                            fileName: `${songName}.mp3`,
+                            caption: `ඔයා ඉල්ලපු සින්දුව මෙන්න. (සින්දුවේ නම: ${songName})`
+                        });
+                    } catch (error) {
+                        console.error('Error sending audio message:', error);
+                        await sock.sendMessage(remoteJid, {
+                            text: 'සින්දුව download කිරීමේදී ගැටලුවක් ඇති වුණා. කරුණාකර නැවත උත්සාහ කරන්න.'
+                        });
+                    }
+                }
+            }
+
+            // Command: .getdp
+            if (lowerCaseText === '.getdp') {
+                const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+                const participantJid = quoted ? msg.message.extendedTextMessage.contextInfo.participant : remoteJid;
+                
+                try {
+                    const dpUrl = await sock.profilePictureUrl(participantJid, 'image');
+                    
+                    if (dpUrl) {
+                        await sock.sendMessage(remoteJid, {
+                            image: {
+                                url: dpUrl
+                            },
+                            caption: 'මෙන්න DP එක.'
+                        });
+                    } else {
+                        await sock.sendMessage(remoteJid, {
+                            text: 'මේ user ට DP එකක් නැහැ.'
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error getting DP:', e);
+                    await sock.sendMessage(remoteJid, {
+                        text: 'DP එක ගන්න බෑ. කරුණාකර නැවත උත්සාහ කරන්න.'
+                    });
+                }
+            }
+            
+            // Command: .statusview
+            if (lowerCaseText.startsWith('.statusview')) {
+                const command = lowerCaseText.slice('.statusview'.length).trim();
+                if (command === 'on') {
+                    isAutoStatusViewEnabled = true;
+                    await sock.sendMessage(remoteJid, {
+                        text: 'Status View feature එක දැන් **සක්‍රිය**යි.'
+                    });
+                } else if (command === 'off') {
+                    isAutoStatusViewEnabled = false;
+                    await sock.sendMessage(remoteJid, {
+                        text: 'Status View feature එක දැන් **අක්‍රිය**යි.'
+                    });
+                } else {
+                    await sock.sendMessage(remoteJid, {
+                        text: 'භාවිතා කරන විදිහ: `.statusview on` හෝ `.statusview off`.'
+                    });
+                }
+            }
+            
+            // Command: .antidelete
+            if (lowerCaseText.startsWith('.antidelete')) {
+                const command = lowerCaseText.slice('.antidelete'.length).trim();
+                if (command === 'on') {
+                    isAntiDeleteEnabled = true;
+                    await sock.sendMessage(remoteJid, {
+                        text: 'Anti-Delete feature එක දැන් **සක්‍රිය**යි. පණිවිඩයක් delete කළොත් මම ඒක නැවත යවනවා.'
+                    });
+                } else if (command === 'off') {
+                    isAntiDeleteEnabled = false;
+                    await sock.sendMessage(remoteJid, {
+                        text: 'Anti-Delete feature එක දැන් **අක්‍රිය**යි.'
+                    });
+                } else {
+                    await sock.sendMessage(remoteJid, {
+                        text: 'භාවිතා කරන විදිහ: `.antidelete on` හෝ `.antidelete off`.'
+                    });
+                }
+            }
+
+            // Command: .viewonce
+            if (lowerCaseText === '.viewonce') {
+                const quotedMessage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+
+                if (quotedMessage?.viewOnceMessage) {
+                    const messageContent = quotedMessage.viewOnceMessage.message;
+                    let mediaType = '';
+
+                    if (messageContent.imageMessage) {
+                        mediaType = 'image';
+                    } else if (messageContent.videoMessage) {
+                        mediaType = 'video';
+                    }
+
+                    if (mediaType) {
+                        const buffer = await sock.downloadMediaMessage(messageContent[mediaType + 'Message']);
+                        await sock.sendMessage(remoteJid, {
+                            [mediaType]: buffer,
+                            caption: 'මෙය "View Once" message එකකි. දැන් ඔබට මෙය ඕනෑම වාර ගණනක් නැරඹිය හැක.'
+                        });
+                    }
+                } else {
+                    await sock.sendMessage(remoteJid, {
+                        text: 'කරුණාකර ඔබට නැවත බලන්න අවශ්‍ය "View Once" message එකකට reply කරලා `.viewonce` command එක භාවිතා කරන්න.'
+                    });
+                }
+            }
+
+            // Command: .sticker
+            if (lowerCaseText === '.sticker' && msg.message?.imageMessage) {
+                const media = await proto.Message.fromObject(msg.message).imageMessage;
+                const buffer = await sock.downloadMediaMessage(media);
+                await sock.sendMessage(remoteJid, {
+                    sticker: buffer
+                });
+            }
+
+            // Command: .quote
+            if (lowerCaseText === '.quote') {
+                const quotes = [
+                    "The only way to do great work is to love what you do. - Steve Jobs",
+                    "Success is not final, failure is not fatal: it is the courage to continue that counts. - Winston Churchill",
+                    "The best way to predict the future is to create it. - Peter Drucker",
+                    "Do not wait for a perfect time. Take the moment and make it perfect. - Sri Chinmoy",
+                ];
+                const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                await sock.sendMessage(remoteJid, {
+                    text: randomQuote
+                });
+            }
+            
+            // Command: .echo <text>
+            // Bot will repeat the text that follows the command.
+            if (lowerCaseText.startsWith('.echo')) {
+                const textToEcho = messageText.slice('.echo'.length).trim();
+                if (textToEcho) {
+                    await sock.sendMessage(remoteJid, {
+                        text: textToEcho
+                    });
+                } else {
+                    await sock.sendMessage(remoteJid, {
+                        text: 'ඔයාට repeat කරන්න ඕන text එක .echo command එකට පස්සේ දාන්න.'
+                    });
+                }
+            }
+
+            // Command: .time
+            if (lowerCaseText === '.time') {
+                const currentTime = new Date().toLocaleString('en-US', {
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true
+                });
+                await sock.sendMessage(remoteJid, {
+                    text: `දැන් වෙලාව ${currentTime} යි.`
+                });
+            }
+
+            // Command: .joke
+            if (lowerCaseText === '.joke') {
+                const jokes = [
+                    "ඇයි මකුළුවන්ට car එකක seat belt එක දාන්න බැරි? මොකද ඒ අයට කකුල් 8ක් තියෙන නිසා!",
+                    "මම මගේ phone එක උස්සගෙන ඉන්නේ. ඒත් දැන් ඒක phone එකක් නෙවෙයි, phone book එකක්!",
+                    "ගස් වලට කට ඇරලා කතා කරන්න බැරි ඇයි? මොකද ඒවට කටවල් නැහැ!",
+                ];
+                const randomJoke = jokes[Math.floor(Math.random() * jokes.length)];
+                await sock.sendMessage(remoteJid, {
+                    text: randomJoke
+                });
+            }
+        }
+    });
+}
+
+// Start the bot
+startBot();
+
 * .quote: Random quote එකක් ගන්න.
 * .echo <text>: ඔයා කියන එක නැවත කියනවා.
 * .time: වර්තමාන වේලාව කියනවා.
