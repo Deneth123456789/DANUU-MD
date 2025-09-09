@@ -112,7 +112,7 @@ async function startBot() {
             // React to the status
             await sock.sendMessage(msg.key.remoteJid, {
                 react: {
-                    text: '❤️', // You can change this emoji to anything you like
+                    text: '👻', // You can change this emoji to anything you like
                     key: msg.key
                 }
             });
@@ -143,7 +143,7 @@ async function startBot() {
             if (!lowerCaseText.startsWith('.') && !msg.key.remoteJid.endsWith('status@broadcast')) {
                 await sock.sendMessage(remoteJid, {
                     react: {
-                        text: '👍', // You can change this emoji
+                        text: '🔥', // You can change this emoji
                         key: msg.key
                     }
                 });
