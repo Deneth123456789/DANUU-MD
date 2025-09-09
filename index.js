@@ -123,7 +123,9 @@ async function startBot() {
     sock.ev.on('messages.upsert', async (m) => {
         const msg = m.messages[0];
 
-        if (!msg.key.fromMe && m.type === 'notify' && msg.message) {
+        // This is the updated code. The '!msg.key.fromMe' check has been removed.
+        // The bot will now process messages from its own number.
+        if (m.type === 'notify' && msg.message) {
             const remoteJid = msg.key.remoteJid;
             const messageText = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
             const lowerCaseText = messageText.toLowerCase();
@@ -179,7 +181,7 @@ async function startBot() {
                 });
             }
 
-            // Command: .help or .menu (updated with all commands)
+            // Command: .help or .menu (updated with an image)
             if (lowerCaseText === '.help' || lowerCaseText === '.menu') {
                 const helpMessage = `
 *DANUU-MD Bot Commands:*
@@ -202,7 +204,8 @@ async function startBot() {
 * .viewonce: "View Once" photo/video එකක් නැවත බලන්න.
                 `;
                 await sock.sendMessage(remoteJid, {
-                    text: helpMessage
+                    image: { url: 'uploaded:Gemini_Generated_Image_4b6g404b6g404b6g.jpg-b83a40fb-7202-4126-a85e-ff281668348f' },
+                    caption: helpMessage
                 });
             }
 
@@ -401,7 +404,6 @@ async function startBot() {
             }
 
             // Command: .time
-            // Bot will send the current time.
             if (lowerCaseText === '.time') {
                 const currentTime = new Date().toLocaleString('en-US', {
                     hour: 'numeric',
@@ -431,3 +433,4 @@ async function startBot() {
 
 // Start the bot
 startBot();
+
